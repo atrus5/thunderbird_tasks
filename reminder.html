@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Task reminder</title>
+  <link rel="stylesheet" href="reminder.css">
+</head>
+<body>
+  <main class="reminder">
+    <div class="rem-head">
+      <img src="icons/icon.svg" alt="" width="22" height="22">
+      <span id="remKind" class="rem-kind">Task due</span>
+      <span id="remWhen" class="rem-when"></span>
+    </div>
+
+    <h1 id="remTitle" class="rem-title">Loading&hellip;</h1>
+    <div id="remMeta" class="rem-meta"></div>
+
+    <p id="remNotes" class="rem-notes hidden"></p>
+    <div id="remEmail" class="rem-email hidden"></div>
+    <div id="remError" class="rem-error hidden" role="alert"></div>
+
+    <div class="rem-actions">
+      <button id="dismissBtn" class="btn" type="button" title="Close this reminder">Dismiss</button>
+      <span class="spacer"></span>
+      <button id="boardBtn" class="btn primary" type="button">Open board</button>
+    </div>
+  </main>
+
+  <script src="dev_shim.js"></script>
+  <script src="storage.js"></script>
+  <script src="reminder.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="10" fill="#4c566a"/>
+  <rect x="4" y="4" width="56" height="56" rx="10" fill="url(#g)" opacity="0.35"/>
+  <!-- three mini status columns -->
+  <rect x="12" y="14" width="12" height="30" rx="3" fill="#ffffff" opacity="0.22"/>
+  <rect x="26" y="14" width="12" height="38" rx="3" fill="#ffffff" opacity="0.30"/>
+  <rect x="40" y="14" width="12" height="24" rx="3" fill="#ffffff" opacity="0.38"/>
+  <!-- cards inside the columns -->
+  <rect x="14" y="17" width="8" height="6" rx="1.5" fill="#e5484d"/>
+  <rect x="14" y="26" width="8" height="6" rx="1.5" fill="#ffffff" opacity="0.9"/>
+  <rect x="28" y="17" width="8" height="6" rx="1.5" fill="#f5a623"/>
+  <rect x="28" y="26" width="8" height="6" rx="1.5" fill="#ffffff" opacity="0.85"/>
+  <rect x="42" y="17" width="8" height="6" rx="1.5" fill="#3b82f6"/>
+  <!-- checkmark badge -->
+  <circle cx="46" cy="46" r="7" fill="#ffffff"/>
+  <path d="M43 46 l2.2 2.2 L49 44.4" stroke="#4c566a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

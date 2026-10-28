@@ -1,0 +1,63 @@
+name: Build and publish Thunderbird add-on release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js for JavaScript syntax checks
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify tag matches the extension version
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          version = json.loads(Path("manifest.json").read_text(encoding="utf-8"))["version"]
+          tag = os.environ["RELEASE_TAG"]
+          expected = f"v{version}"
+          if tag != expected:
+              raise SystemExit(f"Tag {tag!r} does not match manifest version {version!r}; create tag {expected!r}.")
+          print(f"Release tag {tag} matches manifest version {version}.")
+          PY
+
+      - name: Build and validate XPI
+        run: python build_xpi.py
+
+      - name: Upload XPI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: perch-task-board-${{ github.ref_name }}
+          path: perch-task-board-*.xpi
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release with XPI
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release create "$RELEASE_TAG" "perch-task-board-${RELEASE_TAG#v}.xpi" --generate-notes --title "Perch Task Board ${RELEASE_TAG#v}"

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Perch Task Board</title>
+  <link rel="stylesheet" href="board.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <img src="icons/icon.svg" alt="" width="26" height="26">
+      <h1>Perch Task Board</h1>
+      <span id="summary" class="summary"></span>
+    </div>
+    <div class="header-actions">
+      <span class="hint">Drag cards to reorder &middot; drag between columns to change status</span>
+      <button id="publishBtn" class="btn subtle" type="button" title="Publish all dated tasks as task-board.ics so Thunderbird's Tasks list / Today Pane can show them">Publish calendar</button>
+      <button id="exportBackupBtn" class="btn subtle small" type="button" title="Download all tasks and notes as a JSON backup">Export JSON</button>
+      <button id="importBackupBtn" class="btn subtle small" type="button" title="Merge tasks and notes from a Perch JSON backup; existing records are kept">Import JSON</button>
+      <input id="backupFile" class="hidden" type="file" accept=".json,application/json" aria-label="Choose a Perch Task Board JSON backup">
+      <button id="newNoteBtn" class="btn subtle" type="button" title="Keep a note for later — no due date, never published to the calendar">&#128221; New note</button>
+      <button id="newTaskBtn" class="btn primary" type="button">&#65291; New task</button>
+    </div>
+  </header>
+
+  <section id="todayPanel" class="today-panel" aria-label="Today">
+    <div class="today-head">
+      <span class="today-title">&#128197; Today</span>
+      <span id="todayDate" class="today-date"></span>
+      <span id="todayCount" class="today-count"></span>
+    </div>
+    <div id="todayList" class="today-list"></div>
+  </section>
+
+  <main id="board" class="board"><!-- columns rendered by board.js --></main>
+
+  <footer class="done-section">
+    <div class="done-bar">
+      <button id="doneToggle" class="done-toggle" type="button" aria-expanded="false">
+        &#10004; Done (<span id="doneCount">0</span>)
+      </button>
+      <button id="clearDoneBtn" class="btn subtle small hidden" type="button">Clear done</button>
+    </div>
+    <div id="doneList" class="done-list hidden"></div>
+  </footer>
+
+  <section id="notesPanel" class="notes-panel" aria-label="Notes">
+    <div class="notes-head">
+      <span class="notes-title">&#128221; Notes</span>
+      <span id="notesCount" class="notes-count">0</span>
+      <span class="notes-hint">Kept for later &mdash; not tasks, no due dates, never published to the calendar</span>
+      <span class="spacer"></span>
+      <input id="noteQuick" class="note-quick" type="text" maxlength="300"
+             placeholder="Jot a note&hellip; (Enter to keep)" autocomplete="off"
+             title="Type a title and press Enter to keep it; click a note to add or edit its text">
+    </div>
+    <div id="notesList" class="notes-list"></div>
+  </section>
+
+  <dialog id="taskDialog" class="task-dialog">
+    <form id="taskForm" novalidate>
+      <h2 id="dialogTitle">New task</h2>
+
+      <label class="field">
+        <span>Title</span>
+        <input id="fTitle" type="text" maxlength="300" placeholder="e.g. Reply to invoice email" autocomplete="off">
+      </label>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Status</span>
+          <select id="fStatus">
+            <option value="urgent">Urgent</option>
+            <option value="high">High</option>
+            <option value="medium" selected>Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Due date</span>
+          <input id="fDue" type="date">
+        </label>
+        <label class="field">
+          <span>Time <em>(optional)</em></span>
+          <input id="fTime" type="time" step="900">
+        </label>
+        <label class="field">
+          <span>Repeat</span>
+          <select id="fRepeat" title="Ticking off a repeating task moves it to its next date instead of marking it done">
+            <option value="none" selected>Never</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="field">
+        <span id="fNotesLabel">Notes</span>
+        <textarea id="fNotes" rows="4" placeholder="Optional details&hellip;"></textarea>
+      </label>
+
+      <div id="emailBox" class="email-box hidden">
+        <div class="email-head">
+          <span>&#9993; Created from email</span>
+          <button type="button" id="openEmailBtn" class="btn subtle small">Open email</button>
+        </div>
+        <div id="emailMeta" class="email-meta"></div>
+      </div>
+
+      <div id="dialogError" class="dialog-error hidden"></div>
+
+      <div class="dialog-actions">
+        <button type="button" id="deleteBtn" class="btn danger">Delete</button>
+        <span class="spacer"></span>
+        <button type="button" id="icsBtn" class="btn subtle" title="Export the due date as a calendar event file">Calendar (.ics)</button>
+        <button type="button" id="cancelBtn" class="btn">Cancel</button>
+        <button type="submit" id="saveBtn" class="btn primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <script src="dev_shim.js"></script>
+  <script src="storage.js"></script>
+  <script src="board.js"></script>
+</body>
+</html>

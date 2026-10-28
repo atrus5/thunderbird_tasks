@@ -1,0 +1,200 @@
+/* popup.css — browser-action popup (fixed small width). */
+
+:root {
+  --bg: #ffffff;
+  --panel: #f4f5f7;
+  --border: #d7dce3;
+  --text: #1d2430;
+  --dim: #6b7482;
+  --accent: #3b82f6;
+  --overdue: #e5484d;
+  --today: #f5a623;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #21252e;
+    --panel: #171a21;
+    --border: #333a47;
+    --text: #e7eaf0;
+    --dim: #98a1b0;
+    --accent: #60a5fa;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  width: 360px;
+  max-height: 560px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 13.5px;
+}
+
+.pop-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pop-header .counts {
+  margin-left: auto;
+  color: var(--dim);
+  font-size: 12px;
+}
+
+/* ── Quick add ────────────────────────────────────────────────────── */
+
+.quick-add {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px 6px;
+}
+
+.quick-add input[type="text"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.quick-add input[type="date"] {
+  width: 128px;
+  flex: none;
+}
+
+.quick-add input {
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 6px 8px;
+}
+
+.quick-add input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────── */
+
+.btn {
+  font: inherit;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 7px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.btn:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn.wide { width: 100%; padding: 8px; }
+
+.btn.from-email {
+  margin: 6px 12px 0;
+  text-align: center;
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Due list ─────────────────────────────────────────────────────── */
+
+.due-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0 6px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.due-group {
+  padding: 7px 6px 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.due-group.overdue { color: var(--overdue); }
+.due-group.today { color: var(--today); }
+
+.due-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.due-item:hover { background: var(--panel); }
+
+.due-item .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.due-item .t {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.due-item .when {
+  color: var(--dim);
+  font-size: 11.5px;
+  flex: none;
+}
+
+.due-item.is-overdue .when { color: var(--overdue); font-weight: 700; }
+
+.empty-hint {
+  color: var(--dim);
+  text-align: center;
+  padding: 18px 12px;
+  font-size: 12.5px;
+}
+
+/* ── Footer / status ──────────────────────────────────────────────── */
+
+.pop-footer {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.status {
+  font-size: 11.5px;
+  color: var(--dim);
+  padding: 0 12px 8px;
+  min-height: 0;
+}
+
+.status.error { color: var(--overdue); }
+.status.ok { color: #2e9e5b; }
+
+.hidden { display: none !important; }

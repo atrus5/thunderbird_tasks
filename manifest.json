@@ -1,0 +1,37 @@
+{
+  "manifest_version": 2,
+  "name": "Perch Task Board",
+  "version": "1.4.1",
+  "description": "Task manager inside Thunderbird: a drag-and-drop status board (Urgent/High/Medium/Low), repeating tasks, due dates with reminder popups, tasks created from emails, keep-for-later notes, and .ics export to your calendar.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "punitivepuns@proton.me",
+      "strict_min_version": "115.0"
+    }
+  },
+  "permissions": [
+    "menus",
+    "messagesRead",
+    "storage",
+    "alarms",
+    "notifications",
+    "tabs",
+    "http://127.0.0.1:8899/*",
+    "http://localhost:8899/*"
+  ],
+  "background": {
+    "scripts": [
+      "storage.js",
+      "background.js"
+    ],
+    "persistent": true
+  },
+  "browser_action": {
+    "default_title": "Perch Task Board",
+    "default_popup": "popup.html",
+    "default_icon": "icons/icon.svg"
+  },
+  "icons": {
+    "64": "icons/icon.svg"
+  }
+}

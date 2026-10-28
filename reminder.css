@@ -1,0 +1,204 @@
+/* reminder.css — the small "task is due" popup window opened by background.js.
+
+   Sized for the window background.js creates (440x260): everything the user
+   needs at a glance, two actions, no scrolling. */
+
+:root {
+  --bg: #f4f5f7;
+  --panel: #ffffff;
+  --panel-border: #d7dce3;
+  --text: #1d2430;
+  --text-dim: #6b7482;
+  --accent: #3b82f6;
+  --accent-text: #ffffff;
+  --danger: #e5484d;
+  --overdue: #e5484d;
+  --today: #f5a623;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171a21;
+    --panel: #21252e;
+    --panel-border: #333a47;
+    --text: #e7eaf0;
+    --text-dim: #98a1b0;
+    --accent: #60a5fa;
+    --accent-text: #10131a;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  display: flex;
+}
+
+.reminder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 14px 16px 13px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rem-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rem-kind {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.rem-kind.overdue { color: var(--overdue); }
+
+.rem-when {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rem-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rem-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.rem-meta:empty { display: none; }
+
+.chip {
+  font-size: 11.5px;
+  border-radius: 999px;
+  padding: 1.5px 8px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel);
+  color: var(--text-dim);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip.overdue {
+  background: color-mix(in srgb, var(--overdue) 15%, transparent);
+  color: var(--overdue);
+  border-color: color-mix(in srgb, var(--overdue) 40%, transparent);
+  font-weight: 700;
+}
+
+.chip.today {
+  background: color-mix(in srgb, var(--today) 16%, transparent);
+  color: color-mix(in srgb, var(--today) 80%, var(--text));
+  border-color: color-mix(in srgb, var(--today) 45%, transparent);
+  font-weight: 600;
+}
+
+.chip.repeat { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 38%, transparent); }
+
+.rem-notes {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-dim);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rem-email {
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 6px 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rem-error {
+  font-size: 12.5px;
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent);
+  border-radius: 8px;
+  padding: 7px 9px;
+}
+
+.rem-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.rem-actions .spacer { flex: 1; }
+
+.btn {
+  border: 1px solid var(--panel-border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.btn:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.btn.primary:hover { filter: brightness(1.08); }
+
+.hidden { display: none !important; }
