@@ -22,7 +22,6 @@ import tempfile
 import zipfile
 
 HERE = pathlib.Path(__file__).resolve().parent
-LEGACY_ADDON_ID = "task-board@example.com"
 
 # Everything Thunderbird loads, in load order for the background page.
 FILES = [
@@ -44,20 +43,17 @@ FILES = [
 
 
 def main() -> int:
-    legacy_id_build = "--legacy-id" in sys.argv[1:]
-    unexpected = [arg for arg in sys.argv[1:] if arg != "--legacy-id"]
-    if unexpected:
-        print("Unknown option(s):", ", ".join(unexpected))
+    if sys.argv[1:]:
+        print("This script takes no arguments; it builds one Perch package.")
         return 2
 
     manifest = json.loads((HERE / "manifest.json").read_text(encoding="utf-8"))
     version = manifest["version"]
-    if legacy_id_build:
-        out = HERE / f"task-board-migration-{version}.xpi"
-        manifest["name"] = "Task Board Data Transfer"
-        manifest.setdefault("browser_specific_settings", {}).setdefault("gecko", {})["id"] = LEGACY_ADDON_ID
-    else:
-        out = HERE / f"perch-task-board-{version}.xpi"
+    out = HERE / f"perch-task-board-{version}.xpi"
+    if out.exists():
+        # Windows refuses to truncate an existing .xpi in place, and starting
+        # from a removed file also means no stale entries survive a rebuild.
+        out.unlink()
 
     missing = [f for f in FILES if not (HERE / f).is_file()]
     if missing:
@@ -66,10 +62,7 @@ def main() -> int:
 
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         for f in FILES:
-            if f == "manifest.json" and legacy_id_build:
-                z.writestr(f, json.dumps(manifest, indent=2) + "\n")
-            else:
-                z.write(HERE / f, f)
+            z.write(HERE / f, f)
 
     fail = []
     tmp = pathlib.Path(tempfile.mkdtemp())
@@ -118,8 +111,7 @@ def main() -> int:
             print(" -", m)
         return 1
 
-    build_kind = "legacy-ID migration" if legacy_id_build else "Perch release"
-    print(f"OK {out.name}  ({man['name']} {version}, {build_kind}, "
+    print(f"OK {out.name}  ({man['name']} {version}, "
           f"{out.stat().st_size} bytes, {len(FILES)} files)")
     return 0
 

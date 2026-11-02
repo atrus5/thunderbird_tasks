@@ -89,60 +89,49 @@ cd thunderbird_tasks
 python build_xpi.py
 ```
 
-This writes `perch-task-board-<version>.xpi` for the Perch ID. To update the
-older Task Board add-on in place so it gains the JSON export button without
-losing its stored tasks, build and install a one-time migration package:
+This writes `perch-task-board-<version>.xpi`. The one-off migration package
+for the old `task-board@example.com` ID is retired — that move is done, so the
+builder only ever produces the Perch add-on.
 
-```bash
-python build_xpi.py --legacy-id
-```
-
-Install `task-board-migration-<version>.xpi` from Add-ons and Themes → gear →
-Install Add-on From File. It keeps the old ID `task-board@example.com` (so
-Thunderbird updates that add-on's storage in place) but is labelled **Task
-Board Data Transfer** to avoid confusing it with Perch. Open that board,
-export JSON, then open Perch and import the backup. Once you have confirmed
-the data transferred, you can remove the migration add-on if desired.
-
-Both builds use an explicit file list — `manifest.json`, `storage.js`,
+The build uses an explicit file list — `manifest.json`, `storage.js`,
 `background.js`, `dev_shim.js`, `board.html/css/js`, `reminder.html/css/js`,
-`popup.html/css/js`, `icons/icon.svg` — and verify archive integrity,
+`popup.html/css/js`, `icons/icon.svg` — and verifies archive integrity,
 manifest-at-root, JS syntax with `node --check`, and local HTML references.
 `README.md`, `build_xpi.py` and editor cruft never ship.
 
 ## GitHub Releases
 
-This directory is a standalone Git repository. To publish it under your
-GitHub account:
-
-1. Create an empty repository on GitHub (for example `perch-task-board`). Do
-   not initialize it with a README, license, or `.gitignore`.
-2. From this directory, make the initial commit and connect/push it:
+The repository is already published: `origin` is
+`git@github-atrus5:atrus5/thunderbird_tasks.git`, and
+`.github/workflows/release.yml` does the work. **A release is one tag push:**
 
 ```bash
-git add .
-git commit -m "Prepare Perch Task Board for GitHub releases"
-git remote add origin https://github.com/atrus5/<repository>.git
-git push -u origin main
-```
+# 1. bump "version" in manifest.json, commit everything
+git add -A
+git commit -m "Release 1.4.2"
+git push origin main
 
-Replace `<repository>` with the actual repository name. The included
-`.github/workflows/release.yml` builds the Perch XPI and attaches it to a
-GitHub Release whenever you push a version tag matching the manifest. The
-tag must exactly match the version in `manifest.json`, prefixed with `v`:
-
-```bash
-# After changing manifest.json to the next version and committing the changes
+# 2. tag the same version, prefixed with v, and push the tag
 git tag v1.4.2
 git push origin v1.4.2
 ```
 
-For each later release, use the new version (for example `v1.4.3`) and push
-that tag. The workflow checks the version, runs `python build_xpi.py`, and
-publishes `perch-task-board-<version>.xpi` with generated release notes. It
-also has a manual **Run workflow** option that only builds and validates the
-XPI; it does not publish a release without a version tag. GitHub Releases
-are separate from submission to addons.thunderbird.net.
+The tag push starts the workflow, which:
+
+1. checks that the tag (`v1.4.2`) equals `manifest.json`'s `version` — a
+   mismatch fails the run before anything is published,
+2. runs `python build_xpi.py` (which itself syntax-checks every JS file and
+   verifies the archive),
+3. uploads the XPI as a workflow artifact, and
+4. creates a GitHub Release titled `Perch Task Board <version>` with
+   generated release notes and `perch-task-board-<version>.xpi` attached.
+
+A minute later it appears under the repository's **Releases** page. Plain
+commits without a tag build nothing. The workflow's manual **Run workflow**
+button (Actions → the workflow → Run workflow) only builds and validates — it
+never publishes a release. If you tag the wrong commit, delete the tag first
+(`git tag -d v1.4.2 && git push origin :refs/tags/v1.4.2`) and tag again.
+GitHub Releases are separate from submission to addons.thunderbird.net.
 
 **Name and add-on ID:** this publishes as **Perch Task Board**, with the ID
 `punitivepuns@proton.me`. An add-on ID **cannot be changed after the first
@@ -156,17 +145,17 @@ Requires Thunderbird **115+** (`strict_min_version`); uses only supported
 MailExtension APIs (`menus`, `messages`, `messageDisplay`, `alarms`,
 `notifications`, `windows`, `storage`, `tabs`).
 
-## Transfer tasks and notes between add-on IDs
+## Transfer tasks and notes with JSON
 
-Use this when moving data between the older **Task Board** install and **Perch Task Board**:
+The old add-on ID has been migrated, so these steps are only for moving data
+between two Perch installs:
 
-1. From the `thunderbird_tasks` source folder, run `python build_xpi.py --legacy-id` and install the resulting `task-board-migration-<version>.xpi`. Because it retains the old add-on ID, Thunderbird updates the existing Task Board install and preserves its stored tasks/notes.
-2. Open the board labelled **Task Board Data Transfer**, choose **Export JSON**, and save the downloaded `perch-task-board-backup-YYYY-MM-DD.json` somewhere accessible.
-3. Open the Perch Task Board board, choose **Import JSON**, and select that file.
+1. On the board that holds the tasks, choose **Export JSON** and save the downloaded `perch-task-board-backup-YYYY-MM-DD.json` somewhere accessible.
+2. On the Perch Task Board board that should receive them, choose **Import JSON** and select that file.
 3. The importer merges tasks and notes by record ID. Existing destination entries are kept; only missing records are added. Re-importing the same backup is safe. Imported dated tasks have their reminders rescheduled.
-4. Check the new board for the transferred tasks and notes before uninstalling the old add-on.
+4. Check the receiving board for the transferred tasks and notes.
 
-The JSON backup includes all task and note fields, including completed tasks, repeat cadence, ordering, linked-email metadata, timestamps and reminder-deduplication state. Treat the file as private: linked task email subjects and senders may be included. Keep the old add-on installed until you have confirmed the import succeeded.
+The JSON backup includes all task and note fields, including completed tasks, repeat cadence, ordering, linked-email metadata, timestamps and reminder-deduplication state. Treat the file as private: linked task email subjects and senders may be included.
 
 ## Permissions (and why)
 

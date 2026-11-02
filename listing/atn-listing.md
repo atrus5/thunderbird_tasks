@@ -87,7 +87,7 @@ Permissions, and why each is needed:
 • tabs — find and focus the already-open board tab instead of opening duplicates, and re-point the single reminder window.
 • http://127.0.0.1:8899/* and http://localhost:8899/* — this is a loopback-only host permission. "Publish calendar" POSTs the generated .ics to a small local feed server the user runs themselves (ics_server.py, distributed with the source but not inside the .xpi) so Thunderbird can subscribe to the board as a calendar. No remote host is ever contacted.
 
-The reminder window is a packaged page, reminder.html, opened with windows.create({type:"popup"}) when a task comes due. All task data stays in storage.local. JSON export uses a Blob download from the board page; import reads only the JSON file explicitly selected by the user. The migration XPI uses the legacy ID only to upgrade the user's existing install and is not the package for this listing.
+The reminder window is a packaged page, reminder.html, opened with windows.create({type:"popup"}) when a task comes due. All task data stays in storage.local. JSON export uses a Blob download from the board page; import reads only the JSON file explicitly selected by the user. The package for this listing is the single XPI produced by build_xpi.py, with the ID punitivepuns@proton.me.
 ```
 
 ## 7. Before you click Submit
