@@ -6,7 +6,7 @@ separate paragraphs, `•` starts a bullet), which the listing renders as-is.
 
 ## 1. File to upload
 
-`perch-task-board-1.4.1.xpi` — build it with `python build_xpi.py`. Unsigned is
+`perch-task-board-1.4.2.xpi` — build it with `python build_xpi.py`. Unsigned is
 fine: ATN signs during review.
 
 ## 2. Listing fields
@@ -37,7 +37,7 @@ Perch Task Board puts a task board inside Thunderbird, so the task that starts i
 
 • Four priority columns — Urgent, High, Medium and Low. Drag a card within a column to reorder it, or across to change its priority. The order sticks.
 
-• Due dates and reminders — give any task a date and an optional time. When it comes due, Perch announces it twice: a popup window inside Thunderbird showing the task, its time, notes and the email it came from, plus a system notification (the Windows toast / action centre) that opens the board when clicked. If Thunderbird was closed when something came due, you get an "Overdue" catch-up on the next start. The toolbar button carries an overdue count badge.
+• Due dates and reminders — give any task a date and an optional time. When it comes due, Perch announces it twice: a popup window inside Thunderbird showing the task, its time, notes and the email it came from, plus a system notification (the Windows toast / action centre) that opens the board when clicked. Not ready when it pops up? Snooze it for 15, 30, 45 or 60 minutes and it comes back at that time, without moving the task's real deadline. If Thunderbird was closed when something came due, you get an "Overdue" catch-up on the next start. The toolbar button carries an overdue count badge.
 
 • Repeating tasks — Daily, Weekly, Monthly or Yearly. Ticking a repeating task off moves it to its next occurrence instead of closing it, and the cadence stays anchored to the original date (a task due on the 31st stays on the 31st, clamping into shorter months without drifting). Repeats are exported to the calendar as standard recurrence rules.
 
@@ -105,7 +105,7 @@ The reminder window is a packaged page, reminder.html, opened with windows.creat
   dropdown together if you prefer MPL-2.0 or GPL-3.0.
 - **ID.** `punitivepuns@proton.me` is permanent once the first version is
   uploaded, and visible to anyone who inspects the package.
-- **Install check.** Install `perch-task-board-1.4.1.xpi` in Thunderbird 115+
+- **Install check.** Install `perch-task-board-1.4.2.xpi` in Thunderbird 115+
   (Add-ons and Themes → gear → Install Add-on From File…) before uploading; that
   path is not exercised automatically here.
 - **Homepage and support links.** Deliberately blank until the source is pushed.

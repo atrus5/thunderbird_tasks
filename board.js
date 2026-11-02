@@ -618,6 +618,7 @@ async function toggleDone(id, done) {
   }
   task.done = done;
   task.doneAt = done ? new Date().toISOString() : null;
+  task.snoozeUntil = null;   // a snooze belongs to the reminder, not the task
   try {
     await persist();
   } catch (_) { /* toast already shown */ }
@@ -636,8 +637,10 @@ async function rollRepeatForward(task) {
   }
   const previousDue = task.due;
   const previousNotified = task.notifiedAt;
+  const previousSnooze = task.snoozeUntil;
   task.due = next;
   task.notifiedAt = null;   // a fresh occurrence gets a fresh reminder
+  task.snoozeUntil = null;
   task.done = false;
   task.doneAt = null;
   try {
@@ -645,6 +648,7 @@ async function rollRepeatForward(task) {
   } catch (_) {
     task.due = previousDue;
     task.notifiedAt = previousNotified;
+    task.snoozeUntil = previousSnooze;
     renderBoard();
     return;
   }
@@ -1062,8 +1066,12 @@ form.addEventListener("submit", async (e) => {
     task.due = due;
     task.dueTime = dueTime;
     task.repeat = repeat;
-    // New due value => a fresh reminder is allowed to fire.
-    if (dueChanged) task.notifiedAt = null;
+    // New due value => a fresh reminder is allowed to fire, and any snooze
+    // taken on the old due value no longer applies.
+    if (dueChanged) {
+      task.notifiedAt = null;
+      task.snoozeUntil = null;
+    }
     try {
       await persist();
     } catch (_) { return; }

@@ -19,11 +19,13 @@ A task manager that lives inside Thunderbird:
   notification** (`notifications` API — the Windows toast / action-center
   entry) and a **reminder popup window inside Thunderbird**
   (`reminder.html`), showing the task, its due time, repeat, notes and the
-  email it came from, with *Dismiss* and *Open board* buttons. Only one
-  reminder window is kept open — a second reminder re-points it instead of
-  stacking windows. Missed reminders (Thunderbird was closed when the task
-  came due) fire once as an **Overdue** catch-up on the next sync. The toolbar
-  button shows an **overdue count badge**.
+  email it came from, with *Dismiss*, a **Snooze** button (15 min by default,
+  or 30 / 45 / 60 minutes from its dropdown) and *Open board*. Snoozing closes
+  the popup, clears its system toast and announces the task again at the
+  chosen time. Only one reminder window is kept open — a second reminder
+  re-points it instead of stacking windows. Missed reminders (Thunderbird was
+  closed when the task came due) fire once as an **Overdue** catch-up on the
+  next sync. The toolbar button shows an **overdue count badge**.
 - **Tasks from emails** — right-click any message (or a selection) in the
   message list → **Add to Perch**. The task keeps the subject, sender
   and date, and links back to the email: *Open email* from the task editor
@@ -67,10 +69,10 @@ A task manager that lives inside Thunderbird:
 3. Pick `thunderbird_tasks/manifest.json`
 
 **Permanent (no developer mode):** install the ready-made package
-`perch-task-board-1.4.1.xpi` in this folder:
+`perch-task-board-1.4.2.xpi` in this folder:
 
 1. Thunderbird → menu → **Add-ons and Themes** (or `Ctrl+Shift+A`)
-2. gear icon → **Install Add-on From File…** → pick `perch-task-board-1.4.1.xpi`
+2. gear icon → **Install Add-on From File…** → pick `perch-task-board-1.4.2.xpi`
 3. Confirm **Add** — it stays installed across restarts
 
 (Or just drag the `.xpi` onto the Add-ons manager tab.) Unlike Firefox,
@@ -135,7 +137,7 @@ git tag v1.4.2
 git push origin v1.4.2
 ```
 
-For each later release, use the new version (for example `v1.4.2`) and push
+For each later release, use the new version (for example `v1.4.3`) and push
 that tag. The workflow checks the version, runs `python build_xpi.py`, and
 publishes `perch-task-board-<version>.xpi` with generated release notes. It
 also has a manual **Run workflow** option that only builds and validates the
@@ -186,7 +188,7 @@ The JSON backup includes all task and note fields, including completed tasks, re
 | `storage.js`    | shared model: task schema, load/save, due-date math, `.ics`, email deep-link |
 | `background.js` | context menu, reminder alarms → OS notification **+ in-app popup window**, overdue badge, board-tab management |
 | `board.html/css/js` | the board: columns, drag-and-drop, Today panel, **Notes strip**, editor dialog (incl. **Repeat**), done strip, **Publish calendar** |
-| `reminder.html/css/js` | the **reminder popup window** opened by `background.js` when a task is due: title, due time, repeat, notes, *Dismiss* / *Open board* |
+| `reminder.html/css/js` | the **reminder popup window** opened by `background.js` when a task is due: title, due time, repeat, notes, *Dismiss* / *Snooze* (15/30/45/60 min) / *Open board* |
 | `popup.html/css/js`  | toolbar popup: due-soon list, quick add, task from current email |
 | `ics_server.py`  | stdlib-only local server that serves/publishes `task-board.ics` for Thunderbird's calendar subscription (run separately; not packaged in the `.xpi`) |
 | `icons/icon.svg`| extension icon                                                 |
@@ -210,6 +212,7 @@ order**, so array order *is* the manual order. Task shape:
                                   // (a repeat needs a due date; else forced to none)
   "done": false, "doneAt": null,
   "createdAt": "…", "notifiedAt": null,   // reminder dedupe; reset when due changes
+  "snoozeUntil": null,          // ISO moment the snoozed reminder returns
   "email": { "messageId": 7, "headerMessageId": "<…>", "subject": "…",
              "author": "…", "date": "…", "folder": { … } }
 }
@@ -239,6 +242,14 @@ task still due that day). Editing the due date re-arms the reminder.
 Reminders older than 7 days are silently marked handled instead of nagging.
 Resync passes are serialized, so a startup pass and a page write landing
 together cannot announce the same task twice.
+
+Snooze semantics: *Snooze* stores `snoozeUntil` on the task instead of
+changing its due date, so the board and the calendar feed keep showing the
+real deadline. While the snooze is in the future no reminder is announced and
+the alarm is re-armed for that moment; when it passes, the task is announced
+once more — even if Thunderbird was closed — and `snoozeUntil` is cleared. A
+snoozed reminder that has not returned yet stays quiet, while editing the due
+date or ticking the task off drops the snooze.
 
 Repeat semantics: ticking a repeating task off is an **advance**, not a
 completion — `due` moves to the next occurrence (strictly after today),

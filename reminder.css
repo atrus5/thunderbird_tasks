@@ -174,6 +174,41 @@ body {
 
 .rem-actions .spacer { flex: 1; }
 
+/* Snooze is one pill: [15 min ▾][Snooze]. Keeping it compact leaves room
+   for Dismiss and Open board in the 440px window background.js opens. */
+.snooze-group {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.snooze-select {
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-right: 0;
+  border-radius: 8px 0 0 8px;
+  padding: 0 4px 0 9px;
+  cursor: pointer;
+}
+
+.snooze-select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.snooze-group .btn {
+  border-radius: 0 8px 8px 0;
+  padding: 7px 12px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .btn {
   border: 1px solid var(--panel-border);
   background: transparent;

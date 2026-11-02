@@ -119,6 +119,7 @@ function tbMessageDateIso(value) {
  *   done        bool, doneAt iso|null
  *   createdAt   iso string
  *   notifiedAt  iso string|null  (dedupe for the one-shot due reminder)
+ *   snoozeUntil iso string|null  (reminder postponed until this moment)
  *   email       {messageId, headerMessageId, subject, author, date, folder} | null
  */
 function tbNormalizeTask(raw) {
@@ -137,6 +138,7 @@ function tbNormalizeTask(raw) {
       doneAt: null,
       createdAt: new Date().toISOString(),
       notifiedAt: null,
+      snoozeUntil: null,
       email: null,
     },
     raw
@@ -154,6 +156,13 @@ function tbNormalizeTask(raw) {
   t.done = !!t.done;
   t.doneAt = typeof t.doneAt === "string" ? t.doneAt : null;
   t.notifiedAt = typeof t.notifiedAt === "string" ? t.notifiedAt : null;
+  // A snooze with a corrupt timestamp would silently suppress the reminder;
+  // treat it as "not snoozed" so the task's normal due moment wins.
+  t.snoozeUntil =
+    typeof t.snoozeUntil === "string" &&
+    Number.isFinite(Date.parse(t.snoozeUntil))
+      ? t.snoozeUntil
+      : null;
   t.createdAt = typeof t.createdAt === "string" ? t.createdAt : new Date().toISOString();
   if (t.email !== null && !tbIsPlainObject(t.email)) t.email = null;
   return t;
@@ -415,6 +424,16 @@ function tbDueLabel(task, now) {
 function tbReminderMoment(task) {
   if (!task || task.done) return null;
   return tbDueMoment(task);
+}
+
+/**
+ * When a snoozed reminder should fire again, as ms since epoch, or null when
+ * the task isn't snoozed (or the stored timestamp is unusable).
+ */
+function tbSnoozeMoment(task) {
+  if (!task || typeof task.snoozeUntil !== "string") return null;
+  const ms = Date.parse(task.snoozeUntil);
+  return Number.isFinite(ms) ? ms : null;
 }
 
 /* ---------------------------------------------------------------------------

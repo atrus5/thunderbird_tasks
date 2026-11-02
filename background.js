@@ -209,6 +209,34 @@ async function notifyDue(task, overdue) {
   await openReminderPopup(task, overdue);
 }
 
+/** Arm (or re-arm) the one alarm that announces this task's reminder. */
+async function scheduleReminder(task, whenMs) {
+  if (!TBApi || !TBApi.alarms) return;
+  try {
+    await TBApi.alarms.create(REMINDER_PREFIX + task.id, { when: whenMs });
+  } catch (err) {
+    console.warn("[Perch] alarms.create failed for", task.id, err);
+  }
+}
+
+/**
+ * Has this task's current reminder already been announced, so a resync pass
+ * (or a leftover alarm) must stay quiet?
+ *
+ * `notifiedAt` dedupes the single announcement a due value gets — but a
+ * snooze deliberately asks for another one at a later moment, so a task is
+ * announced again once its snooze time passes even though `notifiedAt` still
+ * holds the earlier notice. A snooze still in the future means "quiet for
+ * now", and one already superseded by a later notification stays quiet too.
+ */
+function reminderWasAnnounced(task, now) {
+  const snoozeMs = tbSnoozeMoment(task);
+  if (snoozeMs === null) return !!task.notifiedAt;
+  if (snoozeMs > now) return true;
+  const notifiedMs = task.notifiedAt ? Date.parse(task.notifiedAt) : NaN;
+  return Number.isFinite(notifiedMs) && notifiedMs >= snoozeMs;
+}
+
 /**
  * Should this reminder be titled "Overdue" rather than "Due"?
  * An alarm firing within 5 minutes of the due moment is punctual (not
@@ -251,29 +279,37 @@ async function runResyncPass() {
     const due = tbReminderMoment(task); // null when done or unscheduled
     if (!due) continue;
     const dueMs = due.getTime();
+    const snoozeMs = tbSnoozeMoment(task);
+
+    // Snoozed into the future: re-arm at the snooze moment and stay quiet.
+    // (The task is still due-overdue; the user just postponed the nag.)
+    if (snoozeMs !== null && snoozeMs > now) {
+      await scheduleReminder(task, snoozeMs);
+      continue;
+    }
 
     if (dueMs <= now) {
       // Reminder time has passed and Thunderbird never fired it (was closed,
       // or the task was just created already-due). Fire once per due value;
-      // `notifiedAt` dedupes, and editing the due date resets it.
-      if (task.notifiedAt) continue;
+      // `notifiedAt` dedupes, editing the due date resets it, and a passed
+      // snooze re-announces exactly once more.
+      if (reminderWasAnnounced(task, now)) continue;
+      const snoozed = snoozeMs !== null;
       const stale = now - dueMs > OVERDUE_CATCHUP_WINDOW_MS;
-      if (stale) {
+      if (stale && !snoozed) {
         // Way-too-old reminder (e.g. ancient imported task): mark handled,
         // don't nag with a weeks-late pop-up.
         task.notifiedAt = new Date().toISOString();
+        task.snoozeUntil = null;
         changed = true;
         continue;
       }
       await notifyDue(task, reminderIsOverdue(task, dueMs, now));
       task.notifiedAt = new Date().toISOString();
+      task.snoozeUntil = null;
       changed = true;
-    } else if (TBApi && TBApi.alarms) {
-      try {
-        await TBApi.alarms.create(REMINDER_PREFIX + task.id, { when: dueMs });
-      } catch (err) {
-        console.warn("[Perch] alarms.create failed for", task.id, err);
-      }
+    } else {
+      await scheduleReminder(task, dueMs);
     }
   }
 
@@ -300,14 +336,23 @@ TBApi &&
     (async () => {
       const tasks = await tbLoadTasks();
       const task = tasks.find((t) => t.id === id);
-      if (!task || task.done || task.notifiedAt) return;
+      if (!task || task.done) return;
+      const now = Date.now();
+      // Already announced, or snoozed for later, or a stale alarm for an
+      // earlier due value: stay quiet (the resync pass re-arms the alarm).
+      if (reminderWasAnnounced(task, now)) return;
       const due = tbReminderMoment(task);
-      await notifyDue(
-        task,
-        due ? reminderIsOverdue(task, due.getTime(), Date.now()) : false
-      );
+      if (!due) return;
+      // Write the dedupe marker before announcing: a resync pass racing this
+      // alarm then sees the task as handled rather than announcing it twice.
       task.notifiedAt = new Date().toISOString();
-      await tbSaveTasks(tasks);
+      task.snoozeUntil = null;
+      try {
+        await tbSaveTasks(tasks);
+      } catch (err) {
+        console.warn("[Perch] saving reminder state failed:", err);
+      }
+      await notifyDue(task, reminderIsOverdue(task, due.getTime(), now));
       await updateBadge(tasks);
     })().catch((err) => console.error("[Perch] onAlarm failed:", err));
   });
@@ -330,6 +375,17 @@ TBApi &&
   TBApi.windows.onRemoved.addListener((windowId) => {
     if (windowId === reminderWinId) reminderWinId = null;
   });
+
+/** Clear the toast for a snoozed reminder and re-arm its alarm. */
+async function snoozeReminder(taskId) {
+  if (TBApi && TBApi.notifications &&
+      typeof TBApi.notifications.clear === "function") {
+    try {
+      await TBApi.notifications.clear(REMINDER_PREFIX + taskId);
+    } catch (_) { /* nothing showing, or unsupported; not an error */ }
+  }
+  await resyncReminders();
+}
 
 /* ---------------------------------------------------------------------------
  * Badge: overdue count
@@ -390,6 +446,15 @@ TBApi &&
     }
     if (request.command === "openBoard") {
       return openBoard()
+        .then(() => ({ ok: true }))
+        .catch((err) => ({ ok: false, error: String(err) }));
+    }
+    if (request.command === "snooze" && typeof request.id === "string") {
+      // reminder.js already stored the new `snoozeUntil`; finish the job by
+      // pulling the original toast out of the notification area and arming
+      // the alarm for the new moment right away (instead of waiting for the
+      // debounced storage watcher).
+      return snoozeReminder(request.id)
         .then(() => ({ ok: true }))
         .catch((err) => ({ ok: false, error: String(err) }));
     }

@@ -24,6 +24,15 @@
     <div class="rem-actions">
       <button id="dismissBtn" class="btn" type="button" title="Close this reminder">Dismiss</button>
       <span class="spacer"></span>
+      <span id="snoozeGroup" class="snooze-group" role="group" aria-label="Snooze this reminder">
+        <select id="snoozeMinutes" class="snooze-select" aria-label="Snooze for how long" title="How long to postpone this reminder">
+          <option value="15" selected>15 min</option>
+          <option value="30">30 min</option>
+          <option value="45">45 min</option>
+          <option value="60">1 hour</option>
+        </select>
+        <button id="snoozeBtn" class="btn snooze-btn" type="button" title="Hide this reminder, then show it again later">Snooze</button>
+      </span>
       <button id="boardBtn" class="btn primary" type="button">Open board</button>
     </div>
   </main>

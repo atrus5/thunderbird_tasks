@@ -19,13 +19,26 @@ const metaEl = document.getElementById("remMeta");
 const notesEl = document.getElementById("remNotes");
 const emailEl = document.getElementById("remEmail");
 const errorEl = document.getElementById("remError");
+const snoozeGroupEl = document.getElementById("snoozeGroup");
+const snoozeMinutesEl = document.getElementById("snoozeMinutes");
+const snoozeBtn = document.getElementById("snoozeBtn");
+
+// Snooze is offered in 15-minute steps; the popup defaults to the first one.
+const SNOOZE_CHOICES = [15, 30, 45, 60];
 
 /** Ask the background page to do one of its jobs (open the board, etc.). */
-function send(command) {
+function send(command, extra) {
   if (!TBApi || !TBApi.runtime || typeof TBApi.runtime.sendMessage !== "function") {
     return Promise.resolve(null);
   }
-  return TBApi.runtime.sendMessage({ command }).catch(() => null);
+  return TBApi.runtime
+    .sendMessage(Object.assign({ command }, extra || {}))
+    .catch(() => null);
+}
+
+/** Nothing to snooze once the task is gone or already done. */
+function hideSnooze() {
+  if (snoozeGroupEl) snoozeGroupEl.classList.add("hidden");
 }
 
 function chip(text, extraClass) {
@@ -72,7 +85,10 @@ function renderTask(task, overdue) {
     emailEl.classList.remove("hidden");
   }
 
-  if (task.done) showError("Marked done on the board since this reminder fired.");
+  if (task.done) {
+    hideSnooze();
+    showError("Marked done on the board since this reminder fired.");
+  }
 }
 
 (async function init() {
@@ -83,6 +99,7 @@ function renderTask(task, overdue) {
     kindEl.textContent = "Reminder";
     titleEl.textContent = "This task is no longer on the board";
     showError("It may have been completed or deleted since the reminder fired.");
+    hideSnooze();
     return;
   }
   renderTask(task, overdueHint || tbIsOverdue(task));
@@ -95,6 +112,36 @@ function renderTask(task, overdue) {
 /* ---------------------------------------------------------------------------
  * Actions
  * -------------------------------------------------------------------------*/
+
+/**
+ * Postpone the reminder: store the new moment on the task and let the
+ * background page clear the toast and arm the alarm for it. `notifiedAt` is
+ * deliberately left alone — it still marks the original announcement, and
+ * background.js treats a passed `snoozeUntil` as one fresh reminder.
+ */
+async function snoozeTask(minutes) {
+  const list = await tbLoadTasks();
+  const task = list.find((t) => t.id === taskId);
+  if (!task) {
+    window.close();
+    return;
+  }
+  const until = new Date(Date.now() + minutes * 60 * 1000);
+  task.snoozeUntil = until.toISOString();
+  await tbSaveTasks(list);
+  await send("snooze", { id: task.id });
+  window.close();
+}
+
+snoozeBtn.addEventListener("click", () => {
+  const minutes = Number(snoozeMinutesEl.value);
+  if (!SNOOZE_CHOICES.includes(minutes)) return;
+  snoozeBtn.disabled = true;
+  snoozeTask(minutes).catch((err) => {
+    snoozeBtn.disabled = false;
+    showError("Couldn't snooze this reminder: " + ((err && err.message) || err));
+  });
+});
 
 document.getElementById("dismissBtn").addEventListener("click", () => {
   window.close();
