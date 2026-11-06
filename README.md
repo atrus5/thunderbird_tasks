@@ -69,10 +69,10 @@ A task manager that lives inside Thunderbird:
 3. Pick `thunderbird_tasks/manifest.json`
 
 **Permanent (no developer mode):** install the ready-made package
-`perch-task-board-1.4.2.xpi` in this folder:
+`perch-task-board-1.4.3.xpi` in this folder:
 
 1. Thunderbird → menu → **Add-ons and Themes** (or `Ctrl+Shift+A`)
-2. gear icon → **Install Add-on From File…** → pick `perch-task-board-1.4.2.xpi`
+2. gear icon → **Install Add-on From File…** → pick `perch-task-board-1.4.3.xpi`
 3. Confirm **Add** — it stays installed across restarts
 
 (Or just drag the `.xpi` onto the Add-ons manager tab.) Unlike Firefox,
@@ -108,17 +108,17 @@ The repository is already published: `origin` is
 ```bash
 # 1. bump "version" in manifest.json, commit everything
 git add -A
-git commit -m "Release 1.4.2"
+git commit -m "Release 1.4.3"
 git push origin main
 
 # 2. tag the same version, prefixed with v, and push the tag
-git tag v1.4.2
-git push origin v1.4.2
+git tag v1.4.3
+git push origin v1.4.3
 ```
 
 The tag push starts the workflow, which:
 
-1. checks that the tag (`v1.4.2`) equals `manifest.json`'s `version` — a
+1. checks that the tag (`v1.4.3`) equals `manifest.json`'s `version` — a
    mismatch fails the run before anything is published,
 2. runs `python build_xpi.py` (which itself syntax-checks every JS file and
    verifies the archive),
@@ -130,7 +130,7 @@ A minute later it appears under the repository's **Releases** page. Plain
 commits without a tag build nothing. The workflow's manual **Run workflow**
 button (Actions → the workflow → Run workflow) only builds and validates — it
 never publishes a release. If you tag the wrong commit, delete the tag first
-(`git tag -d v1.4.2 && git push origin :refs/tags/v1.4.2`) and tag again.
+(`git tag -d v1.4.3 && git push origin :refs/tags/v1.4.3`) and tag again.
 GitHub Releases are separate from submission to addons.thunderbird.net.
 
 **Name and add-on ID:** this publishes as **Perch Task Board**, with the ID
@@ -167,7 +167,7 @@ The JSON backup includes all task and note fields, including completed tasks, re
 | `alarms`         | schedule due-date reminders                                  |
 | `notifications`  | the OS notification (Windows toast) shown with each reminder |
 | `tabs`           | reopen/focus the board tab instead of opening duplicates     |
-| `http://127.0.0.1:8899/*` (and `localhost`) | POST the published `task-board.ics` to the local `ics_server.py` feed |
+| `http://127.0.0.1:8899/*` (and `localhost`) | POST the published `task-board.ics` to the local `ics_server.py` feed — only after the opt-in in **Preferences** |
 
 ## Files
 
@@ -179,6 +179,7 @@ The JSON backup includes all task and note fields, including completed tasks, re
 | `board.html/css/js` | the board: columns, drag-and-drop, Today panel, **Notes strip**, editor dialog (incl. **Repeat**), done strip, **Publish calendar** |
 | `reminder.html/css/js` | the **reminder popup window** opened by `background.js` when a task is due: title, due time, repeat, notes, *Dismiss* / *Snooze* (15/30/45/60 min) / *Open board* |
 | `popup.html/css/js`  | toolbar popup: due-soon list, quick add, task from current email |
+| `options.html/css/js` | the add-on's **Preferences** page: the opt-in that lets *Publish calendar* send the `.ics` to a server on this computer (off by default) |
 | `ics_server.py`  | stdlib-only local server that serves/publishes `task-board.ics` for Thunderbird's calendar subscription (run separately; not packaged in the `.xpi`) |
 | `icons/icon.svg`| extension icon                                                 |
 | `dev_shim.js`   | **not loaded in Thunderbird** — a `localStorage` stand-in for `browser.*` so the pages can be opened in a plain browser for UI work |
@@ -254,6 +255,13 @@ extensions, but it *can subscribe to an ICS feed over HTTP* — so a tiny
 local server makes your board tasks show up in Thunderbird's **Tasks list /
 Today Pane** next to real events.
 
+**Opt-in first:** sending the calendar off the machine is **off by default**.
+Open **Add-ons and Themes → Perch Task Board → Preferences** and tick
+*Send the generated calendar to `http://127.0.0.1:8899/task-board.ics`*. The
+page states exactly what the file contains and where it goes. With the box
+unticked, **Publish calendar** only downloads `task-board.ics` and nothing
+leaves the add-on.
+
 **One-time setup:**
 
 1. Start the feed server (stdlib-only, no dependencies):
@@ -281,12 +289,15 @@ last data it fetched.
 - `DUE` is floating local time (timed tasks) or all-day (`VALUE=DATE`), so
   the wall-clock time you set on the board is preserved. `PRIORITY` maps
   Urgent/High/Medium/Low → 1/3/5/7; `CATEGORIES` carries the status label.
-- No server running? The button falls back to downloading `task-board.ics`
-  so you can import it manually instead.
+- No opt-in, no server running, or a failed request? The button downloads
+  `task-board.ics` so you can import it manually instead.
 
 The server binds to `127.0.0.1` only and stores the calendar next to itself
 (`--dir` to change, `--port` to move off 8899 — update the manifest
 permission if you do).
+
+The opt-in lives in `storage.local` under the `settings` key:
+`{ "publishToLocalServer": false }` until the box in Preferences is ticked.
 
 ## Local UI preview (no Thunderbird needed)
 

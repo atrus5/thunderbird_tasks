@@ -1238,6 +1238,16 @@ async function publishCalendar() {
     toast("No tasks with due dates yet — set a due date first", true);
     return;
   }
+
+  // Sending the calendar off this machine is opt-in (Preferences). Without the
+  // preference the button just hands the file to the user; no request is made.
+  const settings = await tbLoadSettings();
+  if (!settings.publishToLocalServer) {
+    tbDownloadText("task-board.ics", ics, "text/calendar;charset=utf-8");
+    toast("Calendar downloaded. To send it to your local feed server instead, tick the box in the add-on's Preferences.", true);
+    return;
+  }
+
   try {
     const resp = await fetch(TB_ICS_PUBLISH_URL, {
       method: "POST",

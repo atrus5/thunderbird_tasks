@@ -1,0 +1,85 @@
+/* options.css — the Preferences page (options.html).
+   System colours only, so the page follows Thunderbird's light/dark theme. */
+:root { color-scheme: light dark; }
+
+body {
+  margin: 0;
+  padding: 28px 24px 40px;
+  font: 13px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.prefs {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 19px;
+  margin: 0 0 4px;
+}
+
+.lede {
+  margin: 0 0 22px;
+  opacity: 0.75;
+}
+
+.pref {
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 10px;
+  padding: 16px 18px 18px;
+}
+
+h2 {
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+
+.desc {
+  margin: 0 0 12px;
+}
+
+.desc.last {
+  margin: 14px 0 0;
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  cursor: pointer;
+}
+
+.check input {
+  margin: 2px 0 0;
+}
+
+.check code {
+  overflow-wrap: anywhere;
+}
+
+.facts {
+  margin: 14px 0 0;
+  padding-left: 18px;
+}
+
+.facts li {
+  margin: 0 0 7px;
+}
+
+.facts li:last-child {
+  margin-bottom: 0;
+}
+
+code {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 12px;
+}
+
+.status {
+  margin: 16px 2px 0;
+  min-height: 18px;
+  opacity: 0.8;
+}

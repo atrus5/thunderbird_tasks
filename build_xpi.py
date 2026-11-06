@@ -38,6 +38,9 @@ FILES = [
     "popup.html",
     "popup.css",
     "popup.js",
+    "options.html",   # the Preferences page (options_ui)
+    "options.css",
+    "options.js",
     "icons/icon.svg",
 ]
 

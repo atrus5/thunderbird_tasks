@@ -6,7 +6,7 @@ separate paragraphs, `•` starts a bullet), which the listing renders as-is.
 
 ## 1. File to upload
 
-`perch-task-board-1.4.2.xpi` — build it with `python build_xpi.py`. Unsigned is
+`perch-task-board-1.4.3.xpi` — build it with `python build_xpi.py`. Unsigned is
 fine: ATN signs during review.
 
 ## 2. Listing fields
@@ -43,7 +43,7 @@ Perch Task Board puts a task board inside Thunderbird, so the task that starts i
 
 • Tasks from email — right-click one or more messages → Add to Perch. The task keeps the subject, sender and date, and can open the original message again from its editor. The link is verified against the Message-ID, so a stale id can never open the wrong email.
 
-• Everything else — a Today panel listing what is overdue or due today; a collapsible Done strip; a Notes area for things you want to keep rather than do; JSON backup and merge-import for moving tasks and notes between add-on installs; and calendar export: any single task as an .ics event, or the whole board published as a subscribable calendar so tasks appear in Thunderbird's Tasks list and Today Pane.
+• Everything else — a Today panel listing what is overdue or due today; a collapsible Done strip; a Notes area for things you want to keep rather than do; JSON backup and merge-import for moving tasks and notes between add-on installs; and calendar export: any single task as an .ics event, or the whole board published as a subscribable calendar (opt-in, via a server on your own computer) so tasks appear in Thunderbird's Tasks list and Today Pane.
 
 No account, no sync service, no telemetry. Your tasks are stored by Thunderbird on your own machine. JSON backups are created only when you choose Export JSON and remain wherever you save them.
 
@@ -57,7 +57,7 @@ Perch Task Board runs entirely inside Thunderbird and keeps everything on your c
 
 What it stores: the tasks and notes you create, in Thunderbird's extension storage on your machine. If you choose Export JSON, the add-on downloads a backup file to the location chosen by Thunderbird; it may include linked email subjects and senders. Nothing is sent to the developer or to any third party.
 
-Network access: the add-on has no remote server. Its only network request is an HTTP POST to 127.0.0.1:8899 (or localhost:8899) on your own computer, made only when you click "Publish calendar" and only if you have started the optional local feed server yourself. If that server is not running, no request is made and the calendar is offered as a file download instead.
+Network access: the add-on has no remote server and no telemetry. One feature can send data over the network — the calendar file it generates — and it is off until you turn it on. In the add-on's Preferences, the option "Send the generated calendar to http://127.0.0.1:8899/task-board.ics" is unchecked by default and states what the file contains. When you tick it and click "Publish calendar", the add-on POSTs that calendar to 127.0.0.1 (or localhost) port 8899 on your own computer, to a feed server you run yourself. The file contains the titles, due dates and times, status, repeat rule and notes of your dated, open tasks; no message content is included. If the option is off, or the server is not running, the calendar is downloaded as a file instead and no request is made.
 
 Message data: when you choose "Add to Perch", the add-on reads the subject, sender, date and Message-ID of the message you selected so the task can link back to it. Message bodies are never read, stored, or transmitted.
 
@@ -73,7 +73,7 @@ Privacy contact: punitivepuns@proton.me
 ```
 Thank you for reviewing. A few notes that should save you time:
 
-Source: the .xpi is unminified and unbundled. It contains exactly the files the add-on loads (manifest.json, storage.js, background.js, board.html/css/js, popup.html/css/js, reminder.html/css/js, dev_shim.js, icons/icon.svg). There is no build step, no generated or obfuscated code, and no remote code loading.
+Source: the .xpi is unminified and unbundled. It contains exactly the files the add-on loads (manifest.json, storage.js, background.js, board.html/css/js, popup.html/css/js, reminder.html/css/js, options.html/css/js, dev_shim.js, icons/icon.svg). There is no build step, no generated or obfuscated code, and no remote code loading.
 
 dev_shim.js is a development helper: it defines a localStorage-backed stand-in for the browser API and is only used when the HTML pages are opened in a plain browser without an extension runtime. Inside Thunderbird the browser object exists, so the shim script tag is skipped entirely.
 
@@ -85,7 +85,7 @@ Permissions, and why each is needed:
 • alarms — one alarm per task due date.
 • notifications — the system notification shown alongside each reminder (type "basic", the only type Thunderbird supports).
 • tabs — find and focus the already-open board tab instead of opening duplicates, and re-point the single reminder window.
-• http://127.0.0.1:8899/* and http://localhost:8899/* — this is a loopback-only host permission. "Publish calendar" POSTs the generated .ics to a small local feed server the user runs themselves (ics_server.py, distributed with the source but not inside the .xpi) so Thunderbird can subscribe to the board as a calendar. No remote host is ever contacted.
+• http://127.0.0.1:8899/* and http://localhost:8899/* — loopback-only host permission for one optional feature. "Publish calendar" can POST the generated .ics to a small feed server the user runs on their own computer (ics_server.py, in the source but not in the .xpi). That transfer is opt-in: the Preferences page has a checkbox that is off by default and names the exact URL and the contents of the file, and board.js reads that stored preference (tbLoadSettings) before it ever calls fetch(). Until the user ticks it, the button only downloads task-board.ics and no request is made. No remote host is ever contacted.
 
 The reminder window is a packaged page, reminder.html, opened with windows.create({type:"popup"}) when a task comes due. All task data stays in storage.local. JSON export uses a Blob download from the board page; import reads only the JSON file explicitly selected by the user. The package for this listing is the single XPI produced by build_xpi.py, with the ID punitivepuns@proton.me.
 ```
@@ -105,7 +105,7 @@ The reminder window is a packaged page, reminder.html, opened with windows.creat
   dropdown together if you prefer MPL-2.0 or GPL-3.0.
 - **ID.** `punitivepuns@proton.me` is permanent once the first version is
   uploaded, and visible to anyone who inspects the package.
-- **Install check.** Install `perch-task-board-1.4.2.xpi` in Thunderbird 115+
+- **Install check.** Install `perch-task-board-1.4.3.xpi` in Thunderbird 115+
   (Add-ons and Themes → gear → Install Add-on From File…) before uploading; that
   path is not exercised automatically here.
 - **Homepage and support links.** Deliberately blank until the source is pushed.

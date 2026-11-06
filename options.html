@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Perch Task Board &mdash; Preferences</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main class="prefs">
+    <h1>Perch Task Board</h1>
+    <p class="lede">Preferences for the board, the toolbar panel and reminders.</p>
+
+    <section class="pref" aria-labelledby="calendarHeading">
+      <h2 id="calendarHeading">Calendar feed server</h2>
+      <p class="desc">
+        <strong>Publish calendar</strong> can send the calendar it generates to a
+        small server running on this computer, so Thunderbird can subscribe to
+        your board as a calendar feed.
+      </p>
+
+      <label class="check">
+        <input id="optLocalServer" type="checkbox">
+        <span>
+          Send the generated calendar to
+          <code>http://127.0.0.1:8899/task-board.ics</code>
+        </span>
+      </label>
+
+      <ul class="facts">
+        <li><strong>What is sent:</strong> the calendar file the board generates &mdash;
+          the title, due date and time, status, repeat rule and notes of every
+          dated task that is not done. Nothing else; no email content.</li>
+        <li><strong>Where:</strong> <code>127.0.0.1</code> (this computer) on port
+          8899. The add-on never contacts any other host.</li>
+        <li><strong>When:</strong> only when you click <strong>Publish calendar</strong>.
+          There are no background requests.</li>
+      </ul>
+
+      <p class="desc last">
+        This stays <strong>off</strong> unless you turn it on. With it off,
+        <strong>Publish calendar</strong> only downloads
+        <code>task-board.ics</code> to your computer, and nothing is sent
+        anywhere.
+      </p>
+    </section>
+
+    <p id="status" class="status" role="status"></p>
+  </main>
+
+  <script src="dev_shim.js"></script>
+  <script src="storage.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

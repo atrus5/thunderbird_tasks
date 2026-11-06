@@ -23,6 +23,9 @@ const TB_TASKS_KEY = "tasks";
 // have no status/due/done, and must never leak into the .ics mirror or the
 // Today panel (both iterate TB_TASKS_KEY only).
 const TB_NOTES_KEY = "notes";
+// Preferences set on the options page. Today that is one switch: whether the
+// board may send its generated calendar to a server on this computer.
+const TB_SETTINGS_KEY = "settings";
 // Board columns, left to right. `status` doubles as the user's "status" field
 // (the user picked Low/Medium/High/Urgent as their statuses).
 const TB_STATUSES = ["urgent", "high", "medium", "low"];
@@ -186,6 +189,41 @@ async function tbLoadTasks() {
 async function tbSaveTasks(tasks) {
   if (!TBApi) throw new Error("no extension API available");
   await TBApi.storage.local.set({ [TB_TASKS_KEY]: tasks });
+}
+
+/* ---------------------------------------------------------------------------
+ * Settings (options page)
+ * -------------------------------------------------------------------------*/
+
+/**
+ * Coerce stored settings into a complete object. Everything here defaults to
+ * off: a missing or corrupt value must never switch a network transfer on by
+ * itself.
+ */
+function tbNormalizeSettings(raw) {
+  const s = tbIsPlainObject(raw) ? raw : {};
+  return {
+    // Only true when the user ticked the box in Preferences.
+    publishToLocalServer: s.publishToLocalServer === true,
+  };
+}
+
+async function tbLoadSettings() {
+  if (!TBApi) return tbNormalizeSettings(null);
+  try {
+    const data = await TBApi.storage.local.get(TB_SETTINGS_KEY);
+    return tbNormalizeSettings(data ? data[TB_SETTINGS_KEY] : null);
+  } catch (err) {
+    console.error("[Perch] tbLoadSettings failed:", err);
+    return tbNormalizeSettings(null);
+  }
+}
+
+async function tbSaveSettings(settings) {
+  if (!TBApi) throw new Error("no extension API available");
+  await TBApi.storage.local.set({
+    [TB_SETTINGS_KEY]: tbNormalizeSettings(settings),
+  });
 }
 
 /* ---------------------------------------------------------------------------
